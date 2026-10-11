@@ -46,6 +46,10 @@ def web_search(query):
 
 
 @app.route("/chat", methods=["POST"])
+
+@app.route("/chat", methods=["POST"])
+
+@app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True) or {}
     message = str(data.get("message", "")).strip()
@@ -55,25 +59,22 @@ def chat():
         return jsonify({"error": "Bir mesaj yazmalısın."}), 400
 
     if not GROQ_KEY:
-        return jsonify({
-            "error": "GROQ_API_KEY Render ayarlarında eksik."
-        }), 500
+        return jsonify({"error": "GROQ_API_KEY Render ayarlarında eksik."}), 500
 
     search_results = web_search(message)
 
-    
-system_prompt = (
-    "Sen Efe Jarvis'sin. Türkçe, samimi ve doğal konuş. "
-    "Varsayılan olarak kısa ve net cevap ver; genellikle 1-3 cümle yeterlidir. "
-    "Selamlaşmalara tek cümleyle cevap ver. Kullanıcı ayrıntı isterse detaylı anlat. "
-    "Önceki mesajları dikkate al. Güncel bilgi gerektiğinde web aramasını kullan. "
-    "Gereksiz açıklama ve kaynak ekleme. Bilgi uydurma."
-)
+    system_prompt = (
+        "Sen Efe Jarvis'sin. Türkçe, samimi ve doğal konuş. "
+        "Varsayılan olarak kısa ve net cevap ver; genellikle 1-3 cümle yeterlidir. "
+        "Selamlaşmalara tek cümleyle cevap ver. Kullanıcı ayrıntı isterse detaylı anlat. "
+        "Önceki mesajları dikkate al. Güncel bilgi gerektiğinde web aramasını kullan. "
+        "Gereksiz açıklama ve kaynak ekleme. Bilgi uydurma."
+    )
 
-if search_results:
-    system_prompt += "\n\nWEB ARAMA SONUÇLARI:\n" + search_results
-else:
-    system_prompt += "\n\nBu soruya ait web arama sonucu alınamadı."
+    if search_results:
+        system_prompt += "\n\nWEB ARAMA SONUÇLARI:\n" + search_results
+    else:
+        system_prompt += "\n\nBu soruya ait web arama sonucu alınamadı."
 
     messages = [{"role": "system", "content": system_prompt}]
 

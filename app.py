@@ -2,7 +2,7 @@ import os
 import requests
 from flask import Flask, request, jsonify, send_from_directory
 
-app = Flask(**name**)
+app = Flask(__name__)
 
 GROQ_KEY = os.environ.get("GROQ_API_KEY")
 TAVILY_KEY = os.environ.get("TAVILY_API_KEY")

@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EFE JARVIS</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#07111f;color:#eaf6ff;font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.panel{width:min(700px,94%);height:82vh;min-height:450px;background:#0d1b2c;border:1px solid #173a54;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 45px #00bfff18}
+header{padding:22px;border-bottom:1px solid #173a54;display:flex;align-items:center;gap:14px}
+.logo{width:48px;height:48px;border:2px solid #22d3ee;border-radius:50%;display:grid;place-items:center;color:#22d3ee;font-weight:bold}
+h1{font-size:20px;margin:0;letter-spacing:2px}
+.status{font-size:12px;color:#5eead4;margin-top:6px}
+#messages{padding:20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.msg{padding:13px 16px;border-radius:14px;max-width:88%;white-space:pre-wrap;line-height:1.5}
+.bot{background:#132b40;align-self:flex-start}
+.user{background:#075985;align-self:flex-end}
+form{display:flex;gap:10px;padding:16px;border-top:1px solid #173a54}
+input{flex:1;min-width:0;background:#07111f;border:1px solid #24506b;color:white;padding:14px;border-radius:12px;outline:none}
+button{background:#06b6d4;color:#03111b;border:0;border-radius:12px;padding:0 20px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5}
+footer{text-align:center;color:#7190a6;font-size:11px;padding:0 10px 12px}
+</style>
+</head>
+<body>
+<div class="panel">
+<header><div class="logo">EJ</div><div><h1>EFE JARVIS</h1><div class="status">● KİŞİSEL YAPAY ZEKÂ ASİSTANI</div></div></header>
+<div id="messages"><div class="msg bot">Merhaba! Ben Efe Jarvis. Bana bir şey sorabilirsin.</div></div>
+<form id="form"><input id="input" placeholder="Bir şey sor..." autocomplete="off" required><button id="send">GÖNDER</button></form>
+<footer>Yerel bağlantı · 127.0.0.1:5000</footer>
+</div>
+<script>
+const form=document.getElementById('form');
+const input=document.getElementById('input');
+const messages=document.getElementById('messages');
+const send=document.getElementById('send');
+function add(text,who){
+ const el=document.createElement('div');
+ el.className='msg '+who;
+ el.textContent=text;
+ messages.appendChild(el);
+ messages.scrollTop=messages.scrollHeight;
+}
+form.addEventListener('submit',async e=>{
+ e.preventDefault();
+ const message=input.value.trim();
+ if(!message)return;
+ add(message,'user');
+ input.value='';
+ send.disabled=true;
+ send.textContent='...';
+ try{
+  const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message})});
+  const data=await r.json();
+  add(data.reply||data.error||'Cevap alınamadı.','bot');
+ }catch(err){
+  add('Sunucuya bağlanamadım. CMD ekranında python app.py çalışıyor mu?','bot');
+ }finally{
+  send.disabled=false;
+  send.textContent='GÖNDER';
+  input.focus();
+ }
+});
+</script>
+</body>
+</html>

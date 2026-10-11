@@ -1,15 +1,12 @@
 
 import os
+import requests
 from flask import Flask, request, jsonify, send_from_directory
-from google import genai
-from google.genai import types
 
 app = Flask(__name__)
 
-api_key = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key) if api_key else None
-
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
+API_KEY = os.environ.get("OPENROUTER_API_KEY")
+MODEL = "openrouter/free"
 
 @app.route("/")
 def home():
@@ -24,62 +21,83 @@ def chat():
     if not message:
         return jsonify({"error": "Bir mesaj yazmalısın."}), 400
 
-    if client is None:
-        return jsonify({"error": "API anahtarı ayarlanmamış."}), 500
+    if not API_KEY:
+        return jsonify({"error": "OpenRouter API anahtarı ayarlanmamış."}), 500
 
-    # İstemciden gelen geçmişi sınırla ve doğrula.
-    contents = []
+    messages = [{
+        "role": "system",
+        "content": (
+            "Sen Efe Jarvis'sin. Türkçe, kısa ve doğal cevap ver. "
+            "Önceki mesajları dikkate al. Kullanıcı Fenerbahçe'nin "
+            "kuruluş yılını sorduktan sonra 'GS?' derse Galatasaray'ın "
+            "kuruluş yılını sorduğunu anla. Galatasaray 1905'te kurulmuştur. "
+            "Güncel bilgi istenirse ve web arama aracı mevcut değilse "
+            "internette arama yaptığını iddia etme. Bilmediğini uydurma."
+        )
+    }]
+
     if isinstance(history, list):
         for item in history[-20:]:
             if not isinstance(item, dict):
                 continue
-            role = item.get("role")
-            text = item.get("content")
-            if role not in ("user", "assistant") or not isinstance(text, str):
-                continue
-            text = text.strip()[:4000]
-            if text:
-                contents.append(types.Content(
-                    role="user" if role == "user" else "model",
-                    parts=[types.Part(text=text)]
-                ))
 
-    contents.append(types.Content(
-        role="user",
-        parts=[types.Part(text=message)]
-    ))
+            role = item.get("role")
+            content = item.get("content")
+
+            if role in ("user", "assistant") and isinstance(content, str):
+                messages.append({
+                    "role": "user" if role == "user" else "assistant",
+                    "content": content[:4000]
+                })
+
+    messages.append({"role": "user", "content": message})
 
     try:
-        response = client.models.generate_content(
-            model=MODEL,
-            contents=contents,
-            config=types.GenerateContentConfig(
-                system_instruction=(
-                    "Sen Efe Jarvis'sin. Türkçe konuş. Kısa, net ve doğal cevap ver. "
-                    "Konuşmanın önceki mesajlarını dikkatle dikkate al. "
-                    "Kullanıcı 'GS?', 'peki ya o?' veya benzeri kısa bir takip sorusu "
-                    "sorarsa önceki konuşmaya göre ne kastettiğini anlamaya çalış. "
-                    "Örneğin Fenerbahçe'nin kuruluş yılı sorulduktan sonra 'GS?' "
-                    "derse Galatasaray'ın kuruluş yılını soruyor olabilir; "
-                    "Galatasaray 1905 yılında kurulmuştur. "
-                    "Güncel bilgi gerektiğinde Google Search kullan. "
-                    "Emin olmadığın bilgiyi uydurma."
-                ),
-                tools=[
-                    types.Tool(google_search=types.GoogleSearch())
-                ]
-            )
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://efe-jarvis.onrender.com",
+                "X-Title": "Efe Jarvis"
+            },
+            json={
+                "model": MODEL,
+                "messages": messages
+            },
+            timeout=60
         )
 
+        if not response.ok:
+            app.logger.error(
+                "OpenRouter HTTP %s: %s",
+                response.status_code,
+                response.text[:1500]
+            )
+            return jsonify({
+                "error": "Yapay zekâ şu an cevap veremedi. "
+                         "OpenRouter kotasını ve model durumunu kontrol et."
+            }), 502
+
+        result = response.json()
+        reply = result["choices"][0]["message"]["content"]
+
+        if isinstance(reply, list):
+            reply = "\n".join(
+                part.get("text", "")
+                for part in reply
+                if isinstance(part, dict)
+            )
+
         return jsonify({
-            "reply": response.text or "Cevap oluşturulamadı."
+            "reply": reply or "Cevap oluşturulamadı."
         })
 
     except Exception:
-        app.logger.exception("AI bağlantı hatası")
+        app.logger.exception("OpenRouter bağlantı hatası")
         return jsonify({
-            "error": "Jarvis cevap veremedi. Render loglarını kontrol et."
-        }), 500
+            "error": "OpenRouter bağlantısı başarısız oldu."
+        }), 502
 
 if __name__ == "__main__":
     app.run(

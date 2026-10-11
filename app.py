@@ -117,18 +117,27 @@ def chat():
             timeout=60
         )
 
-        if not response.ok:
-            app.logger.error(
-                "Groq HTTP %s: %s",
-                response.status_code,
-                response.text[:1000]
-            )
-            return jsonify({
-                "error": (
-                    "Groq cevap veremedi. API anahtarını, "
-                    "modeli veya kullanım kotasını kontrol et."
-                )
-            }), 502
+       ```python
+if not response.ok:
+    app.logger.error(
+        "Groq HTTP %s: %s",
+        response.status_code,
+        response.text[:1000]
+    )
+
+    try:
+        error_data = response.json()
+        detail = error_data.get("error", {}).get(
+            "message", "Ayrıntı alınamadı."
+        )
+    except (ValueError, AttributeError):
+        detail = "Groq yanıtı okunamadı."
+
+    return jsonify({
+        "error": f"Groq HTTP {response.status_code}: {detail}"
+    }), 502
+```
+
 
         result = response.json()
         reply = result["choices"][0]["message"]["content"]

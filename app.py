@@ -34,10 +34,10 @@ def web_search(query):
 
         results = response.json().get("results", [])
         return "\n\n".join(
-            f"Başlık: {r.get('title', '')}\n"
-            f"Bilgi: {r.get('content', '')}\n"
-            f"Kaynak: {r.get('url', '')}"
-            for r in results
+            f"Başlık: {item.get('title', '')}\n"
+            f"Bilgi: {item.get('content', '')}\n"
+            f"Kaynak: {item.get('url', '')}"
+            for item in results
         )[:12000]
 
     except Exception:
@@ -55,37 +55,52 @@ def chat():
         return jsonify({"error": "Bir mesaj yazmalısın."}), 400
 
     if not GROQ_KEY:
-        return jsonify({"error": "GROQ_API_KEY Render ayarlarında eksik."}), 500
+        return jsonify({
+            "error": "GROQ_API_KEY Render ayarlarında eksik."
+        }), 500
 
     search_results = web_search(message)
 
     system_prompt = (
         "Sen Efe Jarvis'sin. Türkçe, doğal ve anlaşılır cevap ver. "
-        "Önceki mesajları dikkate al. Güncel sorularda verilen web "
-        "arama sonuçlarını kullan ve mümkünse kaynak bağlantılarını ekle. "
+        "Önceki mesajları dikkate al ve takip sorularını bağlamdan anla. "
+        "Güncel sorularda web arama sonuçlarını kullan. "
+        "Uygun olduğunda kaynak bağlantılarını belirt. "
         "Arama sonucu yoksa internette arama yaptığını iddia etme. "
         "Bilmediğin bilgileri uydurma."
     )
 
     if search_results:
-        system_prompt += "\n\nWEB ARAMA SONUÇLARI:\n" + search_results
+        system_prompt += (
+            "\n\nWEB ARAMA SONUÇLARI:\n" + search_results
+        )
     else:
-        system_prompt += "\n\nBu soruya ait web arama sonucu alınamadı."
+        system_prompt += (
+            "\n\nBu soruya ait web arama sonucu alınamadı."
+        )
 
-    messages = [{"role": "system", "content": system_prompt}]
+    messages = [
+        {"role": "system", "content": system_prompt}
+    ]
 
     if isinstance(history, list):
         for item in history[-20:]:
-            if isinstance(item, dict):
-                role = item.get("role")
-                content = item.get("content")
-                if role in ("user", "assistant") and isinstance(content, str):
-                    messages.append({
-                        "role": role,
-                        "content": content[:4000]
-                    })
+            if not isinstance(item, dict):
+                continue
 
-    messages.append({"role": "user", "content": message})
+            role = item.get("role")
+            content = item.get("content")
+
+            if role in ("user", "assistant") and isinstance(content, str):
+                messages.append({
+                    "role": role,
+                    "content": content[:4000]
+                })
+
+    messages.append({
+        "role": "user",
+        "content": message
+    })
 
     try:
         response = requests.post(
@@ -109,17 +124,24 @@ def chat():
                 response.text[:1000]
             )
             return jsonify({
-                "error": "Groq cevap veremedi. Kota veya model durumunu kontrol et."
+                "error": (
+                    "Groq cevap veremedi. API anahtarını, "
+                    "modeli veya kullanım kotasını kontrol et."
+                )
             }), 502
 
         result = response.json()
         reply = result["choices"][0]["message"]["content"]
 
-        return jsonify({"reply": reply or "Cevap oluşturulamadı."})
+        return jsonify({
+            "reply": reply or "Cevap oluşturulamadı."
+        })
 
     except Exception:
         app.logger.exception("Groq bağlantı hatası")
-        return jsonify({"error": "Yapay zekâ bağlantısı başarısız."}), 502
+        return jsonify({
+            "error": "Yapay zekâ bağlantısı başarısız oldu."
+        }), 502
 
 
 if __name__ == "__main__":

@@ -1,12 +1,13 @@
+```python
 import os
 import requests
 from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
-OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY")
+GROQ_KEY = os.environ.get("GROQ_API_KEY")
 TAVILY_KEY = os.environ.get("TAVILY_API_KEY")
-MODEL = "openrouter/free"
+MODEL = "llama-3.3-70b-versatile"
 
 
 @app.route("/")
@@ -30,17 +31,14 @@ def web_search(query):
             timeout=15
         )
         response.raise_for_status()
+
         results = response.json().get("results", [])
-
-        lines = []
-        for item in results:
-            lines.append(
-                f"Başlık: {item.get('title', '')}\n"
-                f"Bilgi: {item.get('content', '')}\n"
-                f"Kaynak: {item.get('url', '')}"
-            )
-
-        return "\n\n".join(lines)
+        return "\n\n".join(
+            f"Başlık: {r.get('title', '')}\n"
+            f"Bilgi: {r.get('content', '')}\n"
+            f"Kaynak: {r.get('url', '')}"
+            for r in results
+        )[:12000]
 
     except Exception:
         app.logger.exception("Web araması başarısız")
@@ -56,97 +54,72 @@ def chat():
     if not message:
         return jsonify({"error": "Bir mesaj yazmalısın."}), 400
 
-    if not OPENROUTER_KEY:
-        return jsonify({
-            "error": "OpenRouter API anahtarı Render ayarlarında eksik."
-        }), 500
+    if not GROQ_KEY:
+        return jsonify({"error": "GROQ_API_KEY Render ayarlarında eksik."}), 500
 
-    # Her soruda arama yapmak güncel cevap vermeyi kolaylaştırır.
     search_results = web_search(message)
 
     system_prompt = (
         "Sen Efe Jarvis'sin. Türkçe, doğal ve anlaşılır cevap ver. "
-        "Önceki mesajları dikkate al. Takip sorularını bağlamdan anla. "
-        "Aşağıda web araması sonuçları varsa güncel soruları yanıtlarken "
-        "bunları kullan. Sonuçlardaki kaynak bağlantılarını gerektiğinde "
-        "cevabına ekle. Kaynaklar çelişiyorsa bunu belirt. "
+        "Önceki mesajları dikkate al. Güncel sorularda verilen web "
+        "arama sonuçlarını kullan ve mümkünse kaynak bağlantılarını ekle. "
         "Arama sonucu yoksa internette arama yaptığını iddia etme. "
         "Bilmediğin bilgileri uydurma."
     )
 
     if search_results:
-        system_prompt += (
-            "\n\nWEB ARAMASI SONUÇLARI:\n" + search_results[:12000]
-        )
+        system_prompt += "\n\nWEB ARAMA SONUÇLARI:\n" + search_results
     else:
-        system_prompt += (
-            "\n\nBu mesaj için kullanılabilir web arama sonucu yok."
-        )
+        system_prompt += "\n\nBu soruya ait web arama sonucu alınamadı."
 
     messages = [{"role": "system", "content": system_prompt}]
 
     if isinstance(history, list):
         for item in history[-20:]:
-            if not isinstance(item, dict):
-                continue
-
-            role = item.get("role")
-            content = item.get("content")
-
-            if role in ("user", "assistant") and isinstance(content, str):
-                messages.append({
-                    "role": role,
-                    "content": content[:4000]
-                })
+            if isinstance(item, dict):
+                role = item.get("role")
+                content = item.get("content")
+                if role in ("user", "assistant") and isinstance(content, str):
+                    messages.append({
+                        "role": role,
+                        "content": content[:4000]
+                    })
 
     messages.append({"role": "user", "content": message})
 
     try:
         response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            "https://api.groq.com/openai/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {OPENROUTER_KEY}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://efe-jarvis.onrender.com",
-                "X-Title": "Efe Jarvis"
+                "Authorization": f"Bearer {GROQ_KEY}",
+                "Content-Type": "application/json"
             },
             json={
                 "model": MODEL,
-                "messages": messages
+                "messages": messages,
+                "temperature": 0.5
             },
             timeout=60
         )
 
         if not response.ok:
             app.logger.error(
-                "OpenRouter HTTP %s: %s",
+                "Groq HTTP %s: %s",
                 response.status_code,
                 response.text[:1000]
             )
             return jsonify({
-                "error": "Yapay zekâ cevap veremedi. API anahtarını "
-                         "ve ücretsiz modelin kullanılabilirliğini kontrol et."
+                "error": "Groq cevap veremedi. Kota veya model durumunu kontrol et."
             }), 502
 
         result = response.json()
         reply = result["choices"][0]["message"]["content"]
 
-        if isinstance(reply, list):
-            reply = "\n".join(
-                part.get("text", "")
-                for part in reply
-                if isinstance(part, dict)
-            )
-
-        return jsonify({
-            "reply": reply or "Cevap oluşturulamadı."
-        })
+        return jsonify({"reply": reply or "Cevap oluşturulamadı."})
 
     except Exception:
-        app.logger.exception("API bağlantı hatası")
-        return jsonify({
-            "error": "Bağlantı başarısız oldu."
-        }), 502
+        app.logger.exception("Groq bağlantı hatası")
+        return jsonify({"error": "Yapay zekâ bağlantısı başarısız."}), 502
 
 
 if __name__ == "__main__":
@@ -155,3 +128,4 @@ if __name__ == "__main__":
         port=int(os.environ.get("PORT", 5000)),
         debug=False
     )
+```

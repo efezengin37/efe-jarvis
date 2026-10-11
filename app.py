@@ -19,7 +19,7 @@ def chat():
 
     try:
         response = client.models.generate_content(
-            model="gemini-3.7-flash",
+            model="gemini-3.5-flash-lite",
             contents=message,
             config={
                 "system_instruction": (

@@ -72,7 +72,6 @@ system_prompt = (
     "Güncel bilgi gerektiğinde web arama sonuçlarını kullan ve "
     "yalnızca gerçekten yararlıysa kaynak belirt. "
     "Arama yapmadıysan yaptığını iddia etme. Bilgi uydurma."
-
     )
 
     if search_results:

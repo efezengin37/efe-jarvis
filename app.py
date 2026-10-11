@@ -9,7 +9,7 @@ TAVILY_KEY = os.environ.get("TAVILY_API_KEY")
 MODEL = "openai/gpt-oss-120b"
 @app.route("/")
 def home():
-return send_from_directory(".", "jarvisai.html")
+    return send_from_directory(".", "jarvisai.html")
 
 def web_search(query):
 if not TAVILY_KEY:

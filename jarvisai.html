@@ -3,66 +3,282 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EFE JARVIS</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#07111f;color:#eaf6ff;font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
-.panel{width:min(700px,94%);height:82vh;min-height:450px;background:#0d1b2c;border:1px solid #173a54;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 45px #00bfff18}
-header{padding:22px;border-bottom:1px solid #173a54;display:flex;align-items:center;gap:14px}
-.logo{width:48px;height:48px;border:2px solid #22d3ee;border-radius:50%;display:grid;place-items:center;color:#22d3ee;font-weight:bold}
+body{margin:0;background:#07111f;color:#eaf6ff;font-family:Arial,sans-serif}
+.app{display:flex;min-height:100vh}
+.sidebar{width:250px;background:#091625;border-right:1px solid #173a54;padding:18px;display:flex;flex-direction:column;gap:12px}
+.brand{font-size:20px;font-weight:bold;letter-spacing:2px;padding:8px 0 14px}
+button{cursor:pointer;border:0;border-radius:10px;padding:11px;background:#06b6d4;color:#03111b;font-weight:bold}
+.secondary{background:#132b40;color:#eaf6ff;border:1px solid #24506b}
+#history{display:flex;flex-direction:column;gap:7px;overflow:auto}
+.chatitem{display:flex;gap:5px;align-items:center}
+.chatitem button:first-child{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.delete{padding:10px;background:#301c2a;color:#ffb4c7}
+.main{flex:1;min-width:0;display:flex;justify-content:center;padding:20px}
+.panel{width:min(760px,100%);height:calc(100vh - 40px);min-height:450px;background:#0d1b2c;border:1px solid #173a54;border-radius:20px;display:flex;flex-direction:column;overflow:hidden}
+header{padding:20px;border-bottom:1px solid #173a54;display:flex;align-items:center;gap:14px}
+.logo{width:45px;height:45px;flex-shrink:0;border:2px solid #22d3ee;border-radius:50%;display:grid;place-items:center;color:#22d3ee;font-weight:bold}
 h1{font-size:20px;margin:0;letter-spacing:2px}
 .status{font-size:12px;color:#5eead4;margin-top:6px}
 #messages{padding:20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
-.msg{padding:13px 16px;border-radius:14px;max-width:88%;white-space:pre-wrap;line-height:1.5}
+.msg{padding:13px 16px;border-radius:14px;max-width:90%;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
 .bot{background:#132b40;align-self:flex-start}
 .user{background:#075985;align-self:flex-end}
 form{display:flex;gap:10px;padding:16px;border-top:1px solid #173a54}
 input{flex:1;min-width:0;background:#07111f;border:1px solid #24506b;color:white;padding:14px;border-radius:12px;outline:none}
-button{background:#06b6d4;color:#03111b;border:0;border-radius:12px;padding:0 20px;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.5}
+#send{min-width:90px}
 footer{text-align:center;color:#7190a6;font-size:11px;padding:0 10px 12px}
+.empty{color:#7190a6;font-size:13px;line-height:1.5}
+.mobile{display:none}
+@media(max-width:650px){
+ .app{display:block}
+ .sidebar{width:100%;border-right:0;border-bottom:1px solid #173a54;padding:12px}
+ .brand{padding:0}
+ #history{flex-direction:row}
+ .chatitem{min-width:170px}
+ .main{padding:8px}
+ .panel{height:72vh;min-height:400px}
+ header{padding:14px}
+ #messages{padding:13px}
+ form{padding:10px}
+ #send{min-width:68px;padding:0 10px}
+}
 </style>
 </head>
 <body>
-<div class="panel">
-<header><div class="logo">EJ</div><div><h1>EFE JARVIS</h1><div class="status">● KİŞİSEL YAPAY ZEKÂ ASİSTANI</div></div></header>
-<div id="messages"><div class="msg bot">Merhaba! Ben Efe Jarvis. Bana bir şey sorabilirsin.</div></div>
-<form id="form"><input id="input" placeholder="Bir şey sor..." autocomplete="off" required><button id="send">GÖNDER</button></form>
-<footer>Yerel bağlantı · 127.0.0.1:5000</footer>
+<div class="app">
+ <aside class="sidebar">
+  <div class="brand">EFE JARVIS</div>
+  <button id="newChat">+ Yeni sohbet</button>
+  <div style="font-size:12px;color:#7190a6">SON 10 SOHBET</div>
+  <div id="history"></div>
+  <div class="empty">Sohbetler bu tarayıcıda saklanır.</div>
+ </aside>
+
+ <main class="main">
+  <div class="panel">
+   <header>
+    <div class="logo">EJ</div>
+    <div>
+     <h1>EFE JARVIS</h1>
+     <div class="status">● KİŞİSEL YAPAY ZEKÂ ASİSTANI</div>
+    </div>
+   </header>
+   <div id="messages"></div>
+   <form id="form">
+    <input id="input" placeholder="Bir şey sor..." autocomplete="off" required>
+    <button id="send">GÖNDER</button>
+   </form>
+   <footer>EFE JARVIS · Yapay zekâ asistanı</footer>
+  </div>
+ </main>
 </div>
+
 <script>
-const form=document.getElementById('form');
-const input=document.getElementById('input');
-const messages=document.getElementById('messages');
-const send=document.getElementById('send');
-function add(text,who){
- const el=document.createElement('div');
- el.className='msg '+who;
- el.textContent=text;
- messages.appendChild(el);
- messages.scrollTop=messages.scrollHeight;
+const form = document.getElementById('form');
+const input = document.getElementById('input');
+const messagesEl = document.getElementById('messages');
+const send = document.getElementById('send');
+const historyEl = document.getElementById('history');
+const STORAGE_KEY = 'efeJarvisChatsV1';
+
+let chats = [];
+let activeId = null;
+let busy = false;
+
+try {
+  chats = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  if (!Array.isArray(chats)) chats = [];
+} catch {
+  chats = [];
 }
-form.addEventListener('submit',async e=>{
- e.preventDefault();
- const message=input.value.trim();
- if(!message)return;
- add(message,'user');
- input.value='';
- send.disabled=true;
- send.textContent='...';
- try{
-  const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message})});
-  const data=await r.json();
-  add(data.reply||data.error||'Cevap alınamadı.','bot');
- }catch(err){
-  add('Sunucuya bağlanamadım. CMD ekranında python app.py çalışıyor mu?','bot');
- }finally{
-  send.disabled=false;
-  send.textContent='GÖNDER';
+
+function saveChats() {
+  chats = chats.slice(0, 10);
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+  } catch {
+    alert('Sohbetler kaydedilemedi. Tarayıcı depolama alanını kontrol et.');
+  }
+  renderHistory();
+}
+
+function makeId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function createChat() {
+  const chat = {
+    id: makeId(),
+    title: 'Yeni sohbet',
+    updated: Date.now(),
+    messages: []
+  };
+  chats.unshift(chat);
+  chats = chats.slice(0, 10);
+  activeId = chat.id;
+  saveChats();
+  renderMessages();
   input.focus();
- }
+}
+
+function currentChat() {
+  return chats.find(c => c.id === activeId);
+}
+
+function renderHistory() {
+  historyEl.replaceChildren();
+
+  if (!chats.length) {
+    const p = document.createElement('div');
+    p.className = 'empty';
+    p.textContent = 'Henüz sohbet yok.';
+    historyEl.appendChild(p);
+    return;
+  }
+
+  chats.forEach(chat => {
+    const row = document.createElement('div');
+    row.className = 'chatitem';
+
+    const open = document.createElement('button');
+    open.className = 'secondary';
+    open.textContent = chat.title || 'Yeni sohbet';
+    open.title = open.textContent;
+    open.onclick = () => {
+      activeId = chat.id;
+      renderHistory();
+      renderMessages();
+    };
+
+    const del = document.createElement('button');
+    del.className = 'delete';
+    del.textContent = '×';
+    del.title = 'Sohbeti sil';
+    del.setAttribute('aria-label', 'Sohbeti sil');
+    del.onclick = () => {
+      if (!confirm('Bu sohbet silinsin mi?')) return;
+      chats = chats.filter(c => c.id !== chat.id);
+      if (activeId === chat.id) {
+        activeId = chats[0]?.id || null;
+      }
+      if (!activeId) createChat();
+      else {
+        saveChats();
+        renderMessages();
+      }
+    };
+
+    if (chat.id === activeId) {
+      open.style.borderColor = '#22d3ee';
+    }
+
+    row.append(open, del);
+    historyEl.appendChild(row);
+  });
+}
+
+function addMessage(text, who) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + who;
+  el.textContent = text;
+  messagesEl.appendChild(el);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function renderMessages() {
+  messagesEl.replaceChildren();
+  const chat = currentChat();
+
+  if (!chat || !chat.messages.length) {
+    addMessage('Merhaba! Ben Efe Jarvis. Bana bir şey sorabilirsin.', 'bot');
+    return;
+  }
+
+  chat.messages.forEach(m => addMessage(
+    m.content, m.role === 'user' ? 'user' : 'bot'
+  ));
+}
+
+function moveChatToTop(chat) {
+  chat.updated = Date.now();
+  chats = chats.filter(c => c.id !== chat.id);
+  chats.unshift(chat);
+  chats = chats.slice(0, 10);
+  activeId = chat.id;
+}
+
+document.getElementById('newChat').onclick = () => {
+  if (busy) return;
+  createChat();
+};
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  if (busy) return;
+
+  const message = input.value.trim();
+  if (!message) return;
+
+  if (!currentChat()) createChat();
+  const chat = currentChat();
+
+  chat.messages.push({role: 'user', content: message});
+  if (chat.title === 'Yeni sohbet') {
+    chat.title = message.slice(0, 38);
+  }
+
+  moveChatToTop(chat);
+  saveChats();
+  renderMessages();
+  input.value = '';
+  busy = true;
+  send.disabled = true;
+  send.textContent = '...';
+
+  try {
+    const r = await fetch('/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        message,
+        history: chat.messages.slice(-20, -1)
+      })
+    });
+
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Cevap alınamadı.');
+
+    chat.messages.push({
+      role: 'assistant',
+      content: data.reply || 'Cevap oluşturulamadı.'
+    });
+    moveChatToTop(chat);
+    saveChats();
+    renderMessages();
+  } catch (err) {
+    addMessage(
+      'Hata: ' + (err.message || 'Sunucuya bağlanılamadı.'),
+      'bot'
+    );
+  } finally {
+    busy = false;
+    send.disabled = false;
+    send.textContent = 'GÖNDER';
+    input.focus();
+  }
 });
+
+if (chats.length) {
+  activeId = chats[0].id;
+  renderHistory();
+  renderMessages();
+} else {
+  createChat();
+}
 </script>
 </body>
 </html>

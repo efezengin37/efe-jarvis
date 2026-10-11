@@ -7,7 +7,6 @@ app = Flask(__name__)
 GROQ_KEY = os.environ.get("GROQ_API_KEY")
 TAVILY_KEY = os.environ.get("TAVILY_API_KEY")
 MODEL = "openai/gpt-oss-120b"
-
 @app.route("/")
 def home():
 return send_from_directory(".", "jarvisai.html")

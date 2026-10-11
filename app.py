@@ -1,16 +1,52 @@
-
+```python
 import os
 import requests
 from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
-API_KEY = os.environ.get("OPENROUTER_API_KEY")
+OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY")
+TAVILY_KEY = os.environ.get("TAVILY_API_KEY")
 MODEL = "openrouter/free"
+
 
 @app.route("/")
 def home():
     return send_from_directory(".", "jarvisai.html")
+
+
+def web_search(query):
+    if not TAVILY_KEY:
+        return ""
+
+    try:
+        response = requests.post(
+            "https://api.tavily.com/search",
+            json={
+                "api_key": TAVILY_KEY,
+                "query": query,
+                "search_depth": "basic",
+                "max_results": 5
+            },
+            timeout=15
+        )
+        response.raise_for_status()
+        results = response.json().get("results", [])
+
+        lines = []
+        for item in results:
+            lines.append(
+                f"Başlık: {item.get('title', '')}\n"
+                f"Bilgi: {item.get('content', '')}\n"
+                f"Kaynak: {item.get('url', '')}"
+            )
+
+        return "\n\n".join(lines)
+
+    except Exception:
+        app.logger.exception("Web araması başarısız")
+        return ""
+
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -21,20 +57,34 @@ def chat():
     if not message:
         return jsonify({"error": "Bir mesaj yazmalısın."}), 400
 
-    if not API_KEY:
-        return jsonify({"error": "OpenRouter API anahtarı ayarlanmamış."}), 500
+    if not OPENROUTER_KEY:
+        return jsonify({
+            "error": "OpenRouter API anahtarı Render ayarlarında eksik."
+        }), 500
 
-    messages = [{
-        "role": "system",
-        "content": (
-            "Sen Efe Jarvis'sin. Türkçe, kısa ve doğal cevap ver. "
-            "Önceki mesajları dikkate al. Kullanıcı Fenerbahçe'nin "
-            "kuruluş yılını sorduktan sonra 'GS?' derse Galatasaray'ın "
-            "kuruluş yılını sorduğunu anla. Galatasaray 1905'te kurulmuştur. "
-            "Güncel bilgi istenirse ve web arama aracı mevcut değilse "
-            "internette arama yaptığını iddia etme. Bilmediğini uydurma."
+    # Her soruda arama yapmak güncel cevap vermeyi kolaylaştırır.
+    search_results = web_search(message)
+
+    system_prompt = (
+        "Sen Efe Jarvis'sin. Türkçe, doğal ve anlaşılır cevap ver. "
+        "Önceki mesajları dikkate al. Takip sorularını bağlamdan anla. "
+        "Aşağıda web araması sonuçları varsa güncel soruları yanıtlarken "
+        "bunları kullan. Sonuçlardaki kaynak bağlantılarını gerektiğinde "
+        "cevabına ekle. Kaynaklar çelişiyorsa bunu belirt. "
+        "Arama sonucu yoksa internette arama yaptığını iddia etme. "
+        "Bilmediğin bilgileri uydurma."
+    )
+
+    if search_results:
+        system_prompt += (
+            "\n\nWEB ARAMASI SONUÇLARI:\n" + search_results[:12000]
         )
-    }]
+    else:
+        system_prompt += (
+            "\n\nBu mesaj için kullanılabilir web arama sonucu yok."
+        )
+
+    messages = [{"role": "system", "content": system_prompt}]
 
     if isinstance(history, list):
         for item in history[-20:]:
@@ -46,7 +96,7 @@ def chat():
 
             if role in ("user", "assistant") and isinstance(content, str):
                 messages.append({
-                    "role": "user" if role == "user" else "assistant",
+                    "role": role,
                     "content": content[:4000]
                 })
 
@@ -56,7 +106,7 @@ def chat():
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {API_KEY}",
+                "Authorization": f"Bearer {OPENROUTER_KEY}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": "https://efe-jarvis.onrender.com",
                 "X-Title": "Efe Jarvis"
@@ -72,11 +122,11 @@ def chat():
             app.logger.error(
                 "OpenRouter HTTP %s: %s",
                 response.status_code,
-                response.text[:1500]
+                response.text[:1000]
             )
             return jsonify({
-                "error": "Yapay zekâ şu an cevap veremedi. "
-                         "OpenRouter kotasını ve model durumunu kontrol et."
+                "error": "Yapay zekâ cevap veremedi. API anahtarını "
+                         "ve ücretsiz modelin kullanılabilirliğini kontrol et."
             }), 502
 
         result = response.json()
@@ -94,10 +144,11 @@ def chat():
         })
 
     except Exception:
-        app.logger.exception("OpenRouter bağlantı hatası")
+        app.logger.exception("API bağlantı hatası")
         return jsonify({
-            "error": "OpenRouter bağlantısı başarısız oldu."
+            "error": "Bağlantı başarısız oldu."
         }), 502
+
 
 if __name__ == "__main__":
     app.run(
@@ -105,3 +156,4 @@ if __name__ == "__main__":
         port=int(os.environ.get("PORT", 5000)),
         debug=False
     )
+```

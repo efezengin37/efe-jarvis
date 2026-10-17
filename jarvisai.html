@@ -26,8 +26,8 @@ header{display:flex;align-items:center;gap:14px;padding:20px;border-bottom:1px s
 .logo{width:46px;height:46px;flex-shrink:0;border:2px solid #22d3ee;border-radius:15px;display:grid;place-items:center;color:#22d3ee;font-weight:bold}
 h1{font-size:21px;letter-spacing:2px;margin:0}
 .status{font-size:11px;color:#5eead4;margin-top:7px}
-.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:15px 20px;border-bottom:1px solid #1a3048}
-.field{display:flex;flex-direction:column;gap:7px}
+.settings{padding:15px 20px;border-bottom:1px solid #1a3048}
+.field{display:flex;flex-direction:column;gap:7px;max-width:420px}
 label{font-size:11px;color:#91a8c2}
 input,select{width:100%;min-width:0;background:#07111f;border:1px solid #29435e;color:#f1f7ff;padding:13px;border-radius:11px;outline:none}
 input:focus,select:focus{border-color:#22d3ee}
@@ -48,12 +48,11 @@ footer{text-align:center;color:#7188a3;font-size:11px;padding:0 10px 12px}
  .main{padding:8px}
  .panel{height:76vh;min-height:450px}
  header{padding:14px}
- .settings{padding:12px;gap:8px}
+ .settings{padding:12px}
  #messages{padding:13px}
  form{padding:10px}
  #send{min-width:75px}
 }
-@media(max-width:380px){.settings{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -86,16 +85,6 @@ footer{text-align:center;color:#7188a3;font-size:11px;padding:0 10px 12px}
       <option value="Efe Jarvis">Efe Jarvis — Normal asistan</option>
      </select>
     </div>
-    <div class="field">
-     <label for="style">KONUŞMA TARZI</label>
-     <select id="style">
-      <option>Komik</option>
-      <option>Sokak ağzı</option>
-      <option selected>Samimi</option>
-      <option>Ciddi</option>
-      <option>Bilge</option>
-     </select>
-    </div>
    </div>
 
    <div id="messages"></div>
@@ -116,7 +105,6 @@ const messagesEl = document.getElementById('messages');
 const send = document.getElementById('send');
 const historyEl = document.getElementById('history');
 const characterEl = document.getElementById('character');
-const styleEl = document.getElementById('style');
 const STORAGE_KEY = 'efeJarvisChatsV3';
 
 let chats = [];
@@ -147,11 +135,7 @@ function currentChat() {
 }
 
 function createChat() {
-  const chat = {
-    id: makeId(),
-    title: 'Yeni sohbet',
-    messages: []
-  };
+  const chat = {id: makeId(), title: 'Yeni sohbet', messages: []};
   chats.unshift(chat);
   chats = chats.slice(0, 10);
   activeId = chat.id;
@@ -179,7 +163,7 @@ function renderMessages() {
       'Fatih Terim': 'Ciyanofatoberiperikomaridesa!',
       'Efe Jarvis': 'Merhaba! Ben Efe Jarvis. Sana nasıl yardımcı olabilirim?'
     };
-    addMessage(greetings[characterEl.value], 'bot');
+    addMessage(greetings[characterEl.value] || greetings['Efe Jarvis'], 'bot');
     return;
   }
 
@@ -245,9 +229,7 @@ document.getElementById('newChat').onclick = () => {
   if (!busy) createChat();
 };
 
-characterEl.addEventListener('change', () => {
-  if (!currentChat() || !currentChat().messages.length) renderMessages();
-});
+characterEl.addEventListener('change', renderMessages);
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
@@ -259,7 +241,6 @@ form.addEventListener('submit', async e => {
   if (!currentChat()) createChat();
   const chat = currentChat();
   const character = characterEl.value;
-  const style = styleEl.value;
 
   chat.messages.push({role: 'user', content: message});
   if (chat.title === 'Yeni sohbet') {
@@ -281,8 +262,7 @@ form.addEventListener('submit', async e => {
       body: JSON.stringify({
         message,
         character,
-        style,
-        history: chat.messages.slice(-21, -1)
+        history: chat.messages.slice(-13, -1)
       })
     });
 

@@ -4,47 +4,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>EFE JARVIS</title>
+<title>EFE JARVIS AI</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#07111f;color:#eaf6ff;font-family:Arial,sans-serif}
+body{margin:0;background:#060b16;color:#eaf4ff;font-family:Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:10px;padding:12px;background:#06b6d4;color:#04111b;font-weight:bold}
+button:disabled{opacity:.5;cursor:wait}
 .app{display:flex;min-height:100vh}
-.sidebar{width:250px;background:#091625;border-right:1px solid #173a54;padding:18px;display:flex;flex-direction:column;gap:12px}
-.brand{font-size:20px;font-weight:bold;letter-spacing:2px;padding:8px 0 14px}
-button{cursor:pointer;border:0;border-radius:10px;padding:11px;background:#06b6d4;color:#03111b;font-weight:bold}
-.secondary{background:#132b40;color:#eaf6ff;border:1px solid #24506b}
-#history{display:flex;flex-direction:column;gap:7px;overflow:auto}
-.chatitem{display:flex;gap:5px;align-items:center}
+.sidebar{width:250px;flex-shrink:0;background:#091322;border-right:1px solid #1a3048;padding:20px;display:flex;flex-direction:column;gap:14px}
+.brand{font-size:21px;font-weight:bold;letter-spacing:2px;color:#22d3ee;padding:8px 0 18px}
+.secondary{background:#14263b;color:#eaf4ff;border:1px solid #263e59}
+#history{display:flex;flex-direction:column;gap:8px;overflow:auto}
+.chatitem{display:flex;gap:5px}
 .chatitem button:first-child{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.delete{padding:10px;background:#301c2a;color:#ffb4c7}
-.main{flex:1;min-width:0;display:flex;justify-content:center;padding:20px}
-.panel{width:min(760px,100%);height:calc(100vh - 40px);min-height:450px;background:#0d1b2c;border:1px solid #173a54;border-radius:20px;display:flex;flex-direction:column;overflow:hidden}
-header{padding:20px;border-bottom:1px solid #173a54;display:flex;align-items:center;gap:14px}
-.logo{width:45px;height:45px;flex-shrink:0;border:2px solid #22d3ee;border-radius:50%;display:grid;place-items:center;color:#22d3ee;font-weight:bold}
-h1{font-size:20px;margin:0;letter-spacing:2px}
-.status{font-size:12px;color:#5eead4;margin-top:6px}
-#messages{padding:20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
-.msg{padding:13px 16px;border-radius:14px;max-width:90%;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
-.bot{background:#132b40;align-self:flex-start}
-.user{background:#075985;align-self:flex-end}
-form{display:flex;gap:10px;padding:16px;border-top:1px solid #173a54}
-input{flex:1;min-width:0;background:#07111f;border:1px solid #24506b;color:white;padding:14px;border-radius:12px;outline:none}
-#send{min-width:90px}
-footer{text-align:center;color:#7190a6;font-size:11px;padding:0 10px 12px}
-.empty{color:#7190a6;font-size:13px;line-height:1.5}
-.mobile{display:none}
+.delete{background:#351c2a;color:#ffb4c7;padding:10px}
+.empty{color:#8499b2;font-size:12px;line-height:1.6}
+.main{flex:1;min-width:0;padding:20px;display:flex;justify-content:center}
+.panel{width:min(850px,100%);height:calc(100vh - 40px);min-height:520px;background:#0b1627;border:1px solid #1a3048;border-radius:20px;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:14px;padding:20px;border-bottom:1px solid #1a3048}
+.logo{width:48px;height:48px;flex-shrink:0;border:2px solid #22d3ee;border-radius:15px;display:grid;place-items:center;color:#22d3ee;font-weight:bold;font-size:18px}
+h1{font-size:21px;letter-spacing:2px;margin:0}
+.status{font-size:11px;color:#5eead4;margin-top:7px}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:15px 20px;border-bottom:1px solid #1a3048}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{font-size:12px;color:#91a8c2}
+input,select{width:100%;min-width:0;background:#07111f;border:1px solid #29435e;color:#f1f7ff;padding:13px;border-radius:11px;outline:none}
+input:focus,select:focus{border-color:#22d3ee}
+#messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:90%;padding:13px 16px;border-radius:15px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}
+.bot{align-self:flex-start;background:#14263b;border:1px solid #203b55}
+.user{align-self:flex-end;background:#075985}
+form{display:flex;gap:10px;padding:15px;border-top:1px solid #1a3048}
+form input{flex:1}
+#send{min-width:100px}
+footer{text-align:center;color:#7188a3;font-size:11px;padding:0 10px 12px}
 @media(max-width:650px){
  .app{display:block}
- .sidebar{width:100%;border-right:0;border-bottom:1px solid #173a54;padding:12px}
- .brand{padding:0}
+ .sidebar{width:100%;padding:12px;border-right:0;border-bottom:1px solid #1a3048}
+ .brand{padding:4px 0}
  #history{flex-direction:row}
  .chatitem{min-width:170px}
  .main{padding:8px}
- .panel{height:72vh;min-height:400px}
+ .panel{height:76vh;min-height:460px}
  header{padding:14px}
+ .settings{padding:12px;gap:8px}
  #messages{padding:13px}
  form{padding:10px}
- #send{min-width:68px;padding:0 10px}
+ #send{min-width:75px}
+}
+@media(max-width:380px){
+ .settings{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -53,27 +63,46 @@ footer{text-align:center;color:#7190a6;font-size:11px;padding:0 10px 12px}
  <aside class="sidebar">
   <div class="brand">EFE JARVIS</div>
   <button id="newChat">+ Yeni sohbet</button>
-  <div style="font-size:12px;color:#7190a6">SON 10 SOHBET</div>
+  <div style="font-size:12px;color:#8499b2">SON 10 SOHBET</div>
   <div id="history"></div>
   <div class="empty">Sohbetler bu tarayıcıda saklanır.</div>
  </aside>
 
  <main class="main">
-  <div class="panel">
+  <section class="panel">
    <header>
     <div class="logo">EJ</div>
     <div>
      <h1>EFE JARVIS</h1>
-     <div class="status">● KİŞİSEL YAPAY ZEKÂ ASİSTANI</div>
+     <div class="status">● YAPAY ZEKÂ ÇEVRİM İÇİ</div>
     </div>
    </header>
+
+   <div class="settings">
+    <div class="field">
+     <label for="character">KARAKTERİNİ SEÇ</label>
+     <input id="character" value="Recep İvedik" maxlength="80" placeholder="Örn. Komik bir karakter">
+    </div>
+    <div class="field">
+     <label for="style">KONUŞMA TARZI</label>
+     <select id="style">
+      <option>Komik</option>
+      <option>Sokak ağzı</option>
+      <option selected>Samimi</option>
+      <option>Ciddi</option>
+      <option>Bilge</option>
+     </select>
+    </div>
+   </div>
+
    <div id="messages"></div>
+
    <form id="form">
-    <input id="input" placeholder="Bir şey sor..." autocomplete="off" required>
-    <button id="send">GÖNDER</button>
+    <input id="input" placeholder="Jarvis'e bir şey sor..." autocomplete="off" required>
+    <button id="send" type="submit">GÖNDER</button>
    </form>
-   <footer>EFE JARVIS · Yapay zekâ asistanı</footer>
-  </div>
+   <footer>EFE JARVIS · Kişisel yapay zekâ asistanın</footer>
+  </section>
  </main>
 </div>
 
@@ -83,7 +112,9 @@ const input = document.getElementById('input');
 const messagesEl = document.getElementById('messages');
 const send = document.getElementById('send');
 const historyEl = document.getElementById('history');
-const STORAGE_KEY = 'efeJarvisChatsV1';
+const characterEl = document.getElementById('character');
+const styleEl = document.getElementById('style');
+const STORAGE_KEY = 'efeJarvisChatsV2';
 
 let chats = [];
 let activeId = null;
@@ -100,9 +131,7 @@ function saveChats() {
   chats = chats.slice(0, 10);
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
-  } catch {
-    alert('Sohbetler kaydedilemedi. Tarayıcı depolama alanını kontrol et.');
-  }
+  } catch {}
   renderHistory();
 }
 
@@ -149,6 +178,7 @@ function renderHistory() {
     open.textContent = chat.title || 'Yeni sohbet';
     open.title = open.textContent;
     open.onclick = () => {
+      if (busy) return;
       activeId = chat.id;
       renderHistory();
       renderMessages();
@@ -158,13 +188,11 @@ function renderHistory() {
     del.className = 'delete';
     del.textContent = '×';
     del.title = 'Sohbeti sil';
-    del.setAttribute('aria-label', 'Sohbeti sil');
     del.onclick = () => {
+      if (busy) return;
       if (!confirm('Bu sohbet silinsin mi?')) return;
       chats = chats.filter(c => c.id !== chat.id);
-      if (activeId === chat.id) {
-        activeId = chats[0]?.id || null;
-      }
+      if (activeId === chat.id) activeId = chats[0]?.id || null;
       if (!activeId) createChat();
       else {
         saveChats();
@@ -172,10 +200,7 @@ function renderHistory() {
       }
     };
 
-    if (chat.id === activeId) {
-      open.style.borderColor = '#22d3ee';
-    }
-
+    if (chat.id === activeId) open.style.borderColor = '#22d3ee';
     row.append(open, del);
     historyEl.appendChild(row);
   });
@@ -194,13 +219,19 @@ function renderMessages() {
   const chat = currentChat();
 
   if (!chat || !chat.messages.length) {
-    addMessage('Merhaba! Ben Efe Jarvis. Bana bir şey sorabilirsin.', 'bot');
+    const character = characterEl.value.trim() || 'Efe Jarvis';
+    addMessage(
+      'Merhaba! Ben senin yapay zekâ asistanınım. ' +
+      'Seçtiğin karakter: ' + character +
+      '. Bana istediğin soruyu sorabilirsin!',
+      'bot'
+    );
     return;
   }
 
-  chat.messages.forEach(m => addMessage(
-    m.content, m.role === 'user' ? 'user' : 'bot'
-  ));
+  chat.messages.forEach(m => {
+    addMessage(m.content, m.role === 'user' ? 'user' : 'bot');
+  });
 }
 
 function moveChatToTop(chat) {
@@ -216,6 +247,10 @@ document.getElementById('newChat').onclick = () => {
   createChat();
 };
 
+characterEl.addEventListener('change', () => {
+  if (!currentChat() || !currentChat().messages.length) renderMessages();
+});
+
 form.addEventListener('submit', async e => {
   e.preventDefault();
   if (busy) return;
@@ -225,11 +260,11 @@ form.addEventListener('submit', async e => {
 
   if (!currentChat()) createChat();
   const chat = currentChat();
+  const character = characterEl.value.trim() || 'Efe Jarvis';
+  const style = styleEl.value;
 
   chat.messages.push({role: 'user', content: message});
-  if (chat.title === 'Yeni sohbet') {
-    chat.title = message.slice(0, 38);
-  }
+  if (chat.title === 'Yeni sohbet') chat.title = message.slice(0, 38);
 
   moveChatToTop(chat);
   saveChats();
@@ -240,30 +275,30 @@ form.addEventListener('submit', async e => {
   send.textContent = '...';
 
   try {
-    const r = await fetch('/chat', {
+    const response = await fetch('/chat', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        message,
-        history: chat.messages.slice(-20, -1)
+        message: message,
+        character: character,
+        style: style,
+        history: chat.messages.slice(-21, -1)
       })
     });
 
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Cevap alınamadı.');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Cevap alınamadı.');
 
     chat.messages.push({
       role: 'assistant',
       content: data.reply || 'Cevap oluşturulamadı.'
     });
+
     moveChatToTop(chat);
     saveChats();
     renderMessages();
   } catch (err) {
-    addMessage(
-      'Hata: ' + (err.message || 'Sunucuya bağlanılamadı.'),
-      'bot'
-    );
+    addMessage('Hata: ' + (err.message || 'Sunucuya bağlanılamadı.'), 'bot');
   } finally {
     busy = false;
     send.disabled = false;

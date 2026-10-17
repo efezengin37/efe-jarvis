@@ -4,31 +4,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>EFE JARVIS AI</title>
+<title>EFE JARVIS</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#060b16;color:#eaf4ff;font-family:Arial,sans-serif}
 button,input,select{font:inherit}
 button{cursor:pointer;border:0;border-radius:10px;padding:12px;background:#06b6d4;color:#04111b;font-weight:bold}
-button:disabled{opacity:.5;cursor:wait}
+button:disabled{opacity:.5}
 .app{display:flex;min-height:100vh}
-.sidebar{width:250px;flex-shrink:0;background:#091322;border-right:1px solid #1a3048;padding:20px;display:flex;flex-direction:column;gap:14px}
-.brand{font-size:21px;font-weight:bold;letter-spacing:2px;color:#22d3ee;padding:8px 0 18px}
+.sidebar{width:245px;flex-shrink:0;background:#091322;border-right:1px solid #1a3048;padding:18px;display:flex;flex-direction:column;gap:13px}
+.brand{font-size:21px;font-weight:bold;letter-spacing:2px;color:#22d3ee;padding:8px 0 15px}
 .secondary{background:#14263b;color:#eaf4ff;border:1px solid #263e59}
-#history{display:flex;flex-direction:column;gap:8px;overflow:auto}
+#history{display:flex;flex-direction:column;gap:7px;overflow:auto}
 .chatitem{display:flex;gap:5px}
 .chatitem button:first-child{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .delete{background:#351c2a;color:#ffb4c7;padding:10px}
 .empty{color:#8499b2;font-size:12px;line-height:1.6}
 .main{flex:1;min-width:0;padding:20px;display:flex;justify-content:center}
-.panel{width:min(850px,100%);height:calc(100vh - 40px);min-height:520px;background:#0b1627;border:1px solid #1a3048;border-radius:20px;display:flex;flex-direction:column;overflow:hidden}
+.panel{width:min(850px,100%);height:calc(100vh - 40px);min-height:500px;background:#0b1627;border:1px solid #1a3048;border-radius:20px;display:flex;flex-direction:column;overflow:hidden}
 header{display:flex;align-items:center;gap:14px;padding:20px;border-bottom:1px solid #1a3048}
-.logo{width:48px;height:48px;flex-shrink:0;border:2px solid #22d3ee;border-radius:15px;display:grid;place-items:center;color:#22d3ee;font-weight:bold;font-size:18px}
+.logo{width:46px;height:46px;flex-shrink:0;border:2px solid #22d3ee;border-radius:15px;display:grid;place-items:center;color:#22d3ee;font-weight:bold}
 h1{font-size:21px;letter-spacing:2px;margin:0}
 .status{font-size:11px;color:#5eead4;margin-top:7px}
 .settings{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:15px 20px;border-bottom:1px solid #1a3048}
 .field{display:flex;flex-direction:column;gap:7px}
-.field label{font-size:12px;color:#91a8c2}
+label{font-size:11px;color:#91a8c2}
 input,select{width:100%;min-width:0;background:#07111f;border:1px solid #29435e;color:#f1f7ff;padding:13px;border-radius:11px;outline:none}
 input:focus,select:focus{border-color:#22d3ee}
 #messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
@@ -37,25 +37,23 @@ input:focus,select:focus{border-color:#22d3ee}
 .user{align-self:flex-end;background:#075985}
 form{display:flex;gap:10px;padding:15px;border-top:1px solid #1a3048}
 form input{flex:1}
-#send{min-width:100px}
+#send{min-width:95px}
 footer{text-align:center;color:#7188a3;font-size:11px;padding:0 10px 12px}
 @media(max-width:650px){
  .app{display:block}
  .sidebar{width:100%;padding:12px;border-right:0;border-bottom:1px solid #1a3048}
  .brand{padding:4px 0}
  #history{flex-direction:row}
- .chatitem{min-width:170px}
+ .chatitem{min-width:160px}
  .main{padding:8px}
- .panel{height:76vh;min-height:460px}
+ .panel{height:76vh;min-height:450px}
  header{padding:14px}
  .settings{padding:12px;gap:8px}
  #messages{padding:13px}
  form{padding:10px}
  #send{min-width:75px}
 }
-@media(max-width:380px){
- .settings{grid-template-columns:1fr}
-}
+@media(max-width:380px){.settings{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -81,7 +79,12 @@ footer{text-align:center;color:#7188a3;font-size:11px;padding:0 10px 12px}
    <div class="settings">
     <div class="field">
      <label for="character">KARAKTERİNİ SEÇ</label>
-     <input id="character" value="Recep İvedik" maxlength="80" placeholder="Örn. Komik bir karakter">
+     <select id="character">
+      <option value="İsmail Kartal">İsmail Kartal — BİNİİİM!</option>
+      <option value="Ali Koç">Ali Koç — YAPI VAR!</option>
+      <option value="Fatih Terim">Fatih Terim — AGUERO!</option>
+      <option value="Efe Jarvis">Efe Jarvis — Normal asistan</option>
+     </select>
     </div>
     <div class="field">
      <label for="style">KONUŞMA TARZI</label>
@@ -98,7 +101,7 @@ footer{text-align:center;color:#7188a3;font-size:11px;padding:0 10px 12px}
    <div id="messages"></div>
 
    <form id="form">
-    <input id="input" placeholder="Jarvis'e bir şey sor..." autocomplete="off" required>
+    <input id="input" placeholder="Bir mesaj yaz..." autocomplete="off" required>
     <button id="send" type="submit">GÖNDER</button>
    </form>
    <footer>EFE JARVIS · Kişisel yapay zekâ asistanın</footer>
@@ -114,7 +117,7 @@ const send = document.getElementById('send');
 const historyEl = document.getElementById('history');
 const characterEl = document.getElementById('character');
 const styleEl = document.getElementById('style');
-const STORAGE_KEY = 'efeJarvisChatsV2';
+const STORAGE_KEY = 'efeJarvisChatsV3';
 
 let chats = [];
 let activeId = null;
@@ -139,11 +142,14 @@ function makeId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+function currentChat() {
+  return chats.find(c => c.id === activeId);
+}
+
 function createChat() {
   const chat = {
     id: makeId(),
     title: 'Yeni sohbet',
-    updated: Date.now(),
     messages: []
   };
   chats.unshift(chat);
@@ -154,8 +160,32 @@ function createChat() {
   input.focus();
 }
 
-function currentChat() {
-  return chats.find(c => c.id === activeId);
+function addMessage(text, who) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + who;
+  el.textContent = text;
+  messagesEl.appendChild(el);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function renderMessages() {
+  messagesEl.replaceChildren();
+  const chat = currentChat();
+
+  if (!chat || !chat.messages.length) {
+    const greetings = {
+      'İsmail Kartal': 'BİNİİİİM! Hoş geldin binimmm!',
+      'Ali Koç': 'Kardeşim hoş geldin! YAPI VAR!',
+      'Fatih Terim': 'Ciyanofatoberiperikomaridesa!',
+      'Efe Jarvis': 'Merhaba! Ben Efe Jarvis. Sana nasıl yardımcı olabilirim?'
+    };
+    addMessage(greetings[characterEl.value], 'bot');
+    return;
+  }
+
+  chat.messages.forEach(m =>
+    addMessage(m.content, m.role === 'user' ? 'user' : 'bot')
+  );
 }
 
 function renderHistory() {
@@ -176,7 +206,6 @@ function renderHistory() {
     const open = document.createElement('button');
     open.className = 'secondary';
     open.textContent = chat.title || 'Yeni sohbet';
-    open.title = open.textContent;
     open.onclick = () => {
       if (busy) return;
       activeId = chat.id;
@@ -189,8 +218,7 @@ function renderHistory() {
     del.textContent = '×';
     del.title = 'Sohbeti sil';
     del.onclick = () => {
-      if (busy) return;
-      if (!confirm('Bu sohbet silinsin mi?')) return;
+      if (busy || !confirm('Bu sohbet silinsin mi?')) return;
       chats = chats.filter(c => c.id !== chat.id);
       if (activeId === chat.id) activeId = chats[0]?.id || null;
       if (!activeId) createChat();
@@ -206,36 +234,7 @@ function renderHistory() {
   });
 }
 
-function addMessage(text, who) {
-  const el = document.createElement('div');
-  el.className = 'msg ' + who;
-  el.textContent = text;
-  messagesEl.appendChild(el);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-function renderMessages() {
-  messagesEl.replaceChildren();
-  const chat = currentChat();
-
-  if (!chat || !chat.messages.length) {
-    const character = characterEl.value.trim() || 'Efe Jarvis';
-    addMessage(
-      'Merhaba! Ben senin yapay zekâ asistanınım. ' +
-      'Seçtiğin karakter: ' + character +
-      '. Bana istediğin soruyu sorabilirsin!',
-      'bot'
-    );
-    return;
-  }
-
-  chat.messages.forEach(m => {
-    addMessage(m.content, m.role === 'user' ? 'user' : 'bot');
-  });
-}
-
 function moveChatToTop(chat) {
-  chat.updated = Date.now();
   chats = chats.filter(c => c.id !== chat.id);
   chats.unshift(chat);
   chats = chats.slice(0, 10);
@@ -243,8 +242,7 @@ function moveChatToTop(chat) {
 }
 
 document.getElementById('newChat').onclick = () => {
-  if (busy) return;
-  createChat();
+  if (!busy) createChat();
 };
 
 characterEl.addEventListener('change', () => {
@@ -260,11 +258,13 @@ form.addEventListener('submit', async e => {
 
   if (!currentChat()) createChat();
   const chat = currentChat();
-  const character = characterEl.value.trim() || 'Efe Jarvis';
+  const character = characterEl.value;
   const style = styleEl.value;
 
   chat.messages.push({role: 'user', content: message});
-  if (chat.title === 'Yeni sohbet') chat.title = message.slice(0, 38);
+  if (chat.title === 'Yeni sohbet') {
+    chat.title = character + ': ' + message.slice(0, 26);
+  }
 
   moveChatToTop(chat);
   saveChats();
@@ -279,9 +279,9 @@ form.addEventListener('submit', async e => {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        message: message,
-        character: character,
-        style: style,
+        message,
+        character,
+        style,
         history: chat.messages.slice(-21, -1)
       })
     });
@@ -293,7 +293,6 @@ form.addEventListener('submit', async e => {
       role: 'assistant',
       content: data.reply || 'Cevap oluşturulamadı.'
     });
-
     moveChatToTop(chat);
     saveChats();
     renderMessages();

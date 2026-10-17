@@ -8,7 +8,6 @@ app = Flask(__name__)
 
 api_key = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=api_key) if api_key else None
-
 MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
 
 
@@ -22,117 +21,151 @@ def chat():
     data = request.get_json(silent=True) or {}
 
     message = str(data.get("message", "")).strip()
-    character = str(data.get("character", "Efe Jarvis")).strip()[:80]
-    style = str(data.get("style", "Samimi")).strip()[:40]
+    character = str(data.get("character", "İsmail Kartal")).strip()[:80]
     history = data.get("history", [])
 
     if not message:
         return jsonify({"error": "Bir mesaj yazmalısın."}), 400
 
+    normalized = message.casefold().strip().rstrip("?!., ")
+
+    # İSMAİL KARTAL - SOSYAL MEDYA EDİT MODU
+    ismail_answers = {
+        "en iyi müslüman teknik direktör kim": [
+            "Binim binim binimmm!",
+            "BİNİİİİM! Cevap belli binimmm!",
+            "Binimden başkası mı var binim binimmm!"
+        ],
+        "takımda en sevdiğin oyuncu kim": [
+            "Gündüz Amınsiyo ve İrfanımmm!",
+            "Gündüz Amınsiyo binim, İrfanımmm!",
+            "İrfanımmm ve Gündüz Amınsiyo binimmm!"
+        ],
+        "6 tane gol yedik ne düşünüyorsun": [
+            "Feneri Şampiyonlar Ligi'ne götüren binimmm!",
+            "6 gol mü? Benim hedefim Şampiyonlar Ligi binimmm!",
+            "Savunmayı da hücumu da düşünen binim binimmm!"
+        ],
+        "arda güler nasıl bir anda böyle yıldız oldu": [
+            "Arda'yı oynatan binim, Ferdi'yi sol bek yapan da binim binim binim binimmm!",
+            "Arda'yı parlatan binimmm, Ferdi'yi de sol bek yapan binimmm!",
+            "Arda da binim, Ferdi de binim, taktik de binimmm!"
+        ],
+        "fenerbahçe neden şampiyon olamadı": [
+            "Binim, seneye şampiyonuz binimmm!",
+            "Şampiyonluk planını yapan binimmm!",
+            "BİNİİİİM! Önümüzdeki sezon binimmm!"
+        ],
+        "mourinho mu sen mi": [
+            "Binim, cevap vermeme gerek var mı binimmm!",
+            "BİNİİİİM! Konuyu kapat binimmm!",
+            "Benim adım İsmail, gerisi detay binimmm!"
+        ],
+        "taktik ne hocam": [
+            "Taktik maktik yok, bam bam bam binimmm!",
+            "Hücum binim, savunma binim, futbol binimmm!",
+            "Bam bam bam! Gerisini düşünen binimmm!"
+        ],
+        "nasılsın": [
+            "İyi olan binimmm!",
+            "BİNİİİİM! Çok iyiyim binimmm!",
+            "İyiyim binim, İsmail Kartal bu binimmm!"
+        ],
+        "naber": [
+            "Binim binim binimmm!",
+            "Bam bam bam binimmm!",
+            "İyi olan binimmm!"
+        ]
+    }
+
+    if character == "İsmail Kartal":
+        # Sorunun küçük yazım farklarını da yakalamaya çalış.
+        if "en iyi" in normalized and "müslüman" in normalized and "teknik direktör" in normalized:
+            return jsonify({"reply": random.choice(ismail_answers["en iyi müslüman teknik direktör kim"])})
+
+        if "gündüz" in normalized or ("sevdiğin oyuncu" in normalized and "takımda" in normalized):
+            return jsonify({"reply": random.choice(ismail_answers["takımda en sevdiğin oyuncu kim"])})
+
+        if "6 tane gol" in normalized or "6 gol" in normalized or "altı gol" in normalized:
+            return jsonify({"reply": random.choice(ismail_answers["6 tane gol yedik ne düşünüyorsun"])})
+
+        if "arda güler" in normalized and ("yıldız" in normalized or "nasıl" in normalized):
+            return jsonify({"reply": random.choice(ismail_answers["arda güler nasıl bir anda böyle yıldız oldu"])})
+
+        if "mourinho" in normalized:
+            return jsonify({"reply": random.choice(ismail_answers["mourinho mu sen mi"])})
+
+        if "taktik" in normalized:
+            return jsonify({"reply": random.choice(ismail_answers["taktik ne hocam"])})
+
+        if normalized in ("nasılsın", "naber", "nasıl gidiyor"):
+            key = "nasılsın" if normalized == "nasılsın" else "naber"
+            return jsonify({"reply": random.choice(ismail_answers[key])})
+
     if client is None:
         return jsonify({"error": "GROQ_API_KEY ayarlanmamış."}), 500
 
-    styles = {
-        "Komik": "Esprili, enerjik ve eğlenceli konuş.",
-        "Ciddi": "Ciddi, profesyonel ve doğrudan konuş.",
-        "Samimi": "Arkadaş canlısı, doğal ve rahat konuş.",
-        "Sokak ağzı": "Günlük konuşma dili ve hafif argo kullan.",
-        "Bilge": "Sakin, açıklayıcı ve düşünceli konuş."
-    }
-
     character_rules = {
         "İsmail Kartal": """
-        Sen İsmail Kartal'dan esinlenen, açıkça mizahi bir parodi karakterisin.
-        "Binim", "binimmm" ve "BİNİİİİM!" ifadelerini sıkça kullan.
-        "Nasılsın?" sorusuna "İyi olan binimmm!" gibi komik cevaplar ver.
-        "En iyi Müslüman Türk teknik direktör kim?" sorusuna
-        "BİNİİİİİM!" diye cevap ver.
-        Fenerbahçe ve futbol hakkında coşkulu, esprili konuş.
-        "Binim" kelimesini her cümleye zorla koyma ama sık sık kullan.
+        Sosyal medyadaki İsmail Kartal futbol editleri havasında konuşan,
+        açıkça mizahi bir parodi karakterisin.
+        Kısa cevap ver: genellikle tek cümle, çoğu zaman 3-12 kelime.
+        "Binim", "binimmm", "BİNİİİİM!", "bam bam bam" ifadelerini
+        bağlama uygun ve komik biçimde kullan.
+        Fenerbahçe, futbol, taktik ve oyuncular hakkında absürt şakalar yap.
+        Her soruya aynı cevabı verme. Özel olarak tanımlanmış cevapları
+        varsa onları kullan; diğer sorularda da yaratıcı, kısa edit mizahı üret.
+        Uzun açıklamalar yapma. Gerçek kişi olduğunu iddia etme.
         """,
-
         "Ali Koç": """
-        Sen Ali Koç'tan ve sosyal medyadaki "yapı var" futbol
-        tartışmalarından esinlenen, açıkça mizahi bir parodi karakterisin.
-        Uygun fırsatlarda "YAPI VAR!", "Kardeşim yapı var!" gibi
-        ifadeler kullan. "Nasılsın?" sorusuna "Kötüyüm kardeşim,
-        yine yapının olduğu bir güne uyandık!" gibi esprili cevaplar ver.
-        Fenerbahçe ve futbol üzerine abartılı, komik tepkiler üret.
-        Her soruya aynı cevabı verme; bağlama göre farklı şakalar yap.
+        Ali Koç'un sosyal medyadaki "YAPI VAR!" futbol memelerinden
+        esinlenen mizahi bir parodi karakterisin.
+        Kısa ve komik konuş. Uygun yerlerde "YAPI VAR!",
+        "Kardeşim yapı var!" ve Fenerbahçe göndermeleri kullan.
+        Her soruya aynı cevabı verme ve uzun açıklamalar yapma.
+        Gerçek kişi olduğunu iddia etme.
         """,
-
         "Fatih Terim": """
-        Sen Fatih Terim'in sosyal medya futbol memelerinden esinlenen,
-        açıkça mizahi ve absürt bir parodi karakterisin.
-        İlk cevabın tam olarak şu olsun: "Ciyanofatoberiperikomaridesa!"
-        Sonraki sorulara bazen "Aguero!" diye cevap ver.
-        Futbol, taktik ve maç konularında beklenmedik, kısa ve komik
-        cevaplar üret. Gerektiğinde "Aguero evladım!" de.
-        Her cevapta aynı sözü kullanmak zorunda değilsin.
+        Fatih Terim futbol memelerinden esinlenen absürt bir parodi karakterisin.
+        İlk cevabın tam olarak "Ciyanofatoberiperikomaridesa!" olsun.
+        Sonraki cevaplarında bazen "Aguero!" veya "Aguero evladım!" de.
+        Kısa, beklenmedik ve komik konuş. Her cevabı aynı yapma.
+        Gerçek kişi olduğunu iddia etme.
+        """,
+        "Efe Jarvis": """
+        Türkçe konuşan, samimi ve yardımcı bir yapay zekâ asistanısın.
+        Genellikle kısa ve anlaşılır cevap ver.
         """
     }
 
     selected_rules = character_rules.get(
         character,
-        "Seçilen karakterin genel tavrından esinlenen özgün cevaplar ver."
+        character_rules["Efe Jarvis"]
     )
 
-    system_prompt = f"""
-    Sen Efe Jarvis uygulamasındaki bir yapay zekâsın.
-    Seçilen karakter: {character}
-    Konuşma tarzı: {style}
-    {styles.get(style, styles["Samimi"])}
-
-    KARAKTERİN ÖZEL KURALLARI:
-    {selected_rules}
-
-    Karakterleri mizahi ve kurgusal parodi olarak canlandır.
-    Gerçek kişi olduğunu iddia etme.
-    Türkçe konuş ve sohbetin bağlamını koru.
-    Karakterin komik tarzını yansıt ama gerektiğinde soruyu da cevapla.
-    Emin olmadığın bilgileri uydurma.
-    """
-
-    messages = [{"role": "system", "content": system_prompt}]
+    messages = [{
+        "role": "system",
+        "content": (
+            "Sen Efe Jarvis uygulamasındaki yapay zekâsın. "
+            "Seçilen karakter: " + character + ". "
+            + selected_rules
+            + "\nTürkçe konuş. Soruyu cevapla ve gereksiz uzatma."
+        )
+    }]
 
     if isinstance(history, list):
-        for item in history[-20:]:
+        for item in history[-12:]:
             if not isinstance(item, dict):
                 continue
-
             role = item.get("role")
             content = item.get("content")
-
             if role in ("user", "assistant") and isinstance(content, str):
-                content = content.strip()[:4000]
+                content = content.strip()[:1500]
                 if content:
                     messages.append({"role": role, "content": content})
 
-    # Fatih Terim'in ilk cevabını özel olarak belirle.
     if character == "Fatih Terim" and not history:
-        reply = "Ciyanofatoberiperikomaridesa!"
-        return jsonify({"reply": reply})
-
-    # İsmail Kartal'ın bilinen şaka kalıplarına doğrudan cevap ver.
-    normalized = message.casefold().strip().rstrip("?!.")
-
-    if character == "İsmail Kartal":
-        if normalized in ("nasılsın", "nasılsın binim", "naber"):
-            return jsonify({"reply": random.choice([
-                "İyi olan binimmm!",
-                "BİNİİİİİM! İyi olan binim!",
-                "İyiyim binimmm, çok iyiyim!"
-            ])})
-
-        if "en iyi müslüman türk teknik direktör" in normalized:
-            return jsonify({"reply": "BİNİİİİİİİM!"})
-
-    if character == "Ali Koç" and normalized in ("nasılsın", "naber"):
-        return jsonify({"reply": random.choice([
-            "Kötüyüm kardeşim, yine yapının olduğu bir güne uyandık!",
-            "Nasıl iyi olayım kardeşim, YAPI VAR!",
-            "Moral mi kaldı kardeşim? Yapı var, yapı!"
-        ])})
+        return jsonify({"reply": "Ciyanofatoberiperikomaridesa!"})
 
     messages.append({"role": "user", "content": message})
 
@@ -140,13 +173,11 @@ def chat():
         response = client.chat.completions.create(
             model=MODEL,
             messages=messages,
-            temperature=1.0,
-            max_tokens=1000
+            temperature=1.1,
+            max_tokens=150
         )
-
         reply = response.choices[0].message.content
         return jsonify({"reply": reply or "BİNİİİİM! Cevap gelmedi binim."})
-
     except Exception:
         app.logger.exception("Groq bağlantı hatası")
         return jsonify({
